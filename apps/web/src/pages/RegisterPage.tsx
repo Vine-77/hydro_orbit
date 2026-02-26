@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { UserPlus } from 'lucide-react';
 import { Button, Input, Card } from '@hydro-orbit/ui';
 import { useAuthStore } from '../stores/authStore';
 
-export default function LoginPage() {
+export default function RegisterPage() {
+  const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -17,39 +19,35 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000/api'}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password }),
-      });
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
 
-      if (response.ok) {
-        const data = await response.json();
-        login(data.user, data.token);
-        navigate('/dashboard');
-      } else {
-        const data = await response.json();
-        setError(data.message || 'Invalid credentials');
-      }
-    } catch {
-      if (phone && password) {
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      setLoading(false);
+      return;
+    }
+
+    setTimeout(() => {
+      if (name && phone && password) {
         login(
           {
             id: crypto.randomUUID(),
             phone,
-            name: 'John Doe',
+            name,
             role: 'FARMER',
           },
           'mock-token'
         );
         navigate('/dashboard');
       } else {
-        setError('Invalid credentials');
+        setError('Please fill in all fields');
       }
-    } finally {
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -59,7 +57,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md relative">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-emerald-600">Hydro-Orbit</h1>
-          <p className="text-gray-500 mt-2">Smart Irrigation System</p>
+          <p className="text-gray-500 mt-2">Create Your Account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,6 +66,15 @@ export default function LoginPage() {
               {error}
             </div>
           )}
+
+          <Input
+            label="Full Name"
+            type="text"
+            placeholder="John Doe"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
           <Input
             label="Phone Number"
@@ -81,23 +88,32 @@ export default function LoginPage() {
           <Input
             label="Password"
             type="password"
-            placeholder="Enter your password"
+            placeholder="Create a password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
+          <Input
+            label="Confirm Password"
+            type="password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+
           <Button type="submit" className="w-full" loading={loading}>
-            <LogIn className="w-4 h-4 mr-2" />
-            Login
+            <UserPlus className="w-4 h-4 mr-2" />
+            Register
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          New farmer?{' '}
-          <Link to="/register" className="text-emerald-600 hover:underline">
-            Register here
-          </Link>
+          Already have an account?{' '}
+          <a href="/" className="text-emerald-600 hover:underline">
+            Login
+          </a>
         </p>
       </Card>
     </div>

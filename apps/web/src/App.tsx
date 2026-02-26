@@ -3,6 +3,7 @@ import { useAuthStore } from './stores/authStore';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import MainLayout from './layouts/MainLayout';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import FarmDetailPage from './pages/FarmDetailPage';
 import CreateFarmPage from './pages/CreateFarmPage';
@@ -22,6 +23,7 @@ export default function App() {
     <ErrorBoundary>
       <Routes>
       <Route path="/" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
         path="/dashboard"
         element={
