@@ -53,6 +53,15 @@ function SettingsScreen() {
   );
 }
 
+function SensorsScreen() {
+  return (
+    <View style={styles.screen}>
+      <Text style={styles.title}>Sensors</Text>
+      <Text style={styles.subtitle}>Monitor your sensors</Text>
+    </View>
+  );
+}
+
 function LoginScreen() {
   return (
     <View style={styles.screen}>
@@ -71,6 +80,7 @@ function MainTabs() {
           
           if (route.name === 'Dashboard') iconName = focused ? 'home' : 'home-outline';
           else if (route.name === 'Farm') iconName = focused ? 'map' : 'map-outline';
+          else if (route.name === 'Sensors') iconName = focused ? 'analytics' : 'analytics-outline';
           else if (route.name === 'Irrigation') iconName = focused ? 'water' : 'water-outline';
           else if (route.name === 'Alerts') iconName = focused ? 'notifications' : 'notifications-outline';
           else if (route.name === 'Settings') iconName = focused ? 'settings' : 'settings-outline';
@@ -84,6 +94,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
       <Tab.Screen name="Farm" component={FarmScreen} />
+      <Tab.Screen name="Sensors" component={SensorsScreen} />
       <Tab.Screen name="Irrigation" component={IrrigationScreen} />
       <Tab.Screen name="Alerts" component={AlertsScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
