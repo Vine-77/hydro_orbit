@@ -144,3 +144,88 @@ export function calculateTrend(readings: number[]): 'up' | 'down' | 'stable' {
   if (Math.abs(diff) < 2) return 'stable';
   return diff > 0 ? 'up' : 'down';
 }
+
+export async function fetchWithTimeout(
+  url: string,
+  options: RequestInit = {},
+  timeout = 10000
+): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } finally {
+    clearTimeout(id);
+  }
+}
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return 'An unknown error occurred';
+}
+
+export function isOnline(): boolean {
+  return typeof navigator !== 'undefined' ? navigator.onLine : true;
+}
+
+export function storage<T>(key: string) {
+  return {
+    get: (): T | null => {
+      try {
+        const item = localStorage.getItem(key);
+        return item ? JSON.parse(item) : null;
+      } catch {
+        return null;
+      }
+    },
+    set: (value: T): void => {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+      }
+    },
+    remove: (): void => {
+      localStorage.removeItem(key);
+    },
+  };
+}
+
+export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
+  return array.reduce((result, item) => {
+    const group = String(item[key]);
+    if (!result[group]) {
+      result[group] = [];
+    }
+    result[group].push(item);
+    return result;
+  }, {} as Record<string, T[]>);
+}
+
+export function sortBy<T>(array: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] {
+  return [...array].sort((a, b) => {
+    const aVal = a[key];
+    const bVal = b[key];
+    if (aVal < bVal) return order === 'asc' ? -1 : 1;
+    if (aVal > bVal) return order === 'asc' ? 1 : -1;
+    return 0;
+  });
+}
+
+export function unique<T>(array: T[]): T[] {
+  return Array.from(new Set(array));
+}
+
+export function chunk<T>(array: T[], size: number): T[][] {
+  const chunks: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
