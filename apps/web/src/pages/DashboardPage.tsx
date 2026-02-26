@@ -1,5 +1,6 @@
 import { Sun, Droplet, Gauge, Flask, Clock, TrendingDown, Hand, Map, Activity, AlertTriangle, AlertOctagon } from 'lucide-react';
 import { Card, CardHeader, CardContent, Badge } from '@hydro-orbit/ui';
+import { useState, useEffect } from 'react';
 
 const summaryCards = [
   { title: 'Soil Moisture', value: '32%', icon: Droplet, color: 'blue', trend: 'down', status: 'normal' },
@@ -14,6 +15,7 @@ const recentAlerts = [
 ];
 
 export default function DashboardPage() {
+  const [userName, setUserName] = useState('Farmer');
   const greeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
