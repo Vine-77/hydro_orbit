@@ -101,4 +101,39 @@ router.post('/reading', async (req, res, next) => {
   }
 });
 
+router.post('/readings/batch', async (req, res, next) => {
+  try {
+    const { readings } = req.body;
+    
+    if (!Array.isArray(readings) || readings.length === 0) {
+      throw new AppError('Readings array is required', 400);
+    }
+
+    const createdReadings = await Promise.all(
+      readings.map(async (reading: { sensorId: string; value: number }) => {
+        const { sensorId, value } = sensorReadingSchema.parse(reading);
+        
+        const sensor = await prisma.sensor.findUnique({ where: { id: sensorId } });
+        if (!sensor) return null;
+
+        const created = await prisma.sensorReading.create({
+          data: { sensorId, value, timestamp: new Date() },
+        });
+
+        await prisma.sensor.update({
+          where: { id: sensorId },
+          data: { lastReading: value },
+        });
+
+        return created;
+      })
+    );
+
+    const validReadings = createdReadings.filter(Boolean);
+    res.status(201).json(validReadings);
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
