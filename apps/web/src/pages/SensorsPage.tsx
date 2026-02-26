@@ -1,12 +1,12 @@
-import { Network, Waves, Flask, Gauge, Battery, BatteryWarning, Wifi, WifiOff } from 'lucide-react';
-import { Card, CardHeader, CardContent, Badge } from '@hydro-orbit/ui';
+import { Network, Waves, TestTube, Gauge, Battery, BatteryWarning, Wifi, WifiOff } from 'lucide-react';
+import { Card, CardContent, Badge } from '@hydro-orbit/ui';
 
 const sensors = [
   { id: 's1', type: 'moisture', location: 'Zone A', value: '32%', battery: 98, status: 'online', icon: Waves },
-  { id: 's2', type: 'pH', location: 'Zone A', value: '6.8', battery: 95, status: 'online', icon: Flask },
+  { id: 's2', type: 'pH', location: 'Zone A', value: '6.8', battery: 95, status: 'online', icon: TestTube },
   { id: 's3', type: 'waterLevel', location: 'Main Tank', value: '1200L', battery: 100, status: 'online', icon: Gauge },
   { id: 's4', type: 'moisture', location: 'Zone B', value: '20%', battery: 45, status: 'lowBattery', icon: Waves },
-  { id: 's5', type: 'pH', location: 'Zone B', value: '7.2', battery: 80, status: 'online', icon: Flask }
+  { id: 's5', type: 'pH', location: 'Zone B', value: '7.2', battery: 80, status: 'online', icon: TestTube }
 ];
 
 export default function SensorsPage() {

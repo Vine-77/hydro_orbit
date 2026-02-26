@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Settings, User, Bell, Smartphone, CreditCard, Save } from 'lucide-react';
-import { Card, CardHeader, CardContent, Button, Input, Badge } from '@hydro-orbit/ui';
+import { Card, CardContent, Button, Input, Badge } from '@hydro-orbit/ui';
 import { useSettingsStore } from '../stores/settingsStore';
 
 const tabs = [

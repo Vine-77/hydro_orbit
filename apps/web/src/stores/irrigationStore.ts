@@ -17,7 +17,7 @@ interface IrrigationState {
 }
 
 export const useIrrigationStore = create<IrrigationState>((set) => ({
-  mode: 'auto',
+  mode: IrrigationMode.AUTO,
   schedules: [],
   currentStatus: 'idle',
   history: [],

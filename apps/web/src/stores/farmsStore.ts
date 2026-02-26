@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { Farm, Zone, Sensor } from '@hydro-orbit/shared-types';
+import type { Farm } from '@hydro-orbit/shared-types';
 
 interface FarmsState {
   currentFarm: Farm | null;

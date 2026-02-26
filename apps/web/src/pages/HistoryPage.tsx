@@ -1,5 +1,5 @@
 import { CalendarClock, Sprout, AlertTriangle, Activity, Droplet } from 'lucide-react';
-import { Card, CardHeader, CardContent, Badge } from '@hydro-orbit/ui';
+import { Card, CardContent, Badge } from '@hydro-orbit/ui';
 
 const events = [
   { timestamp: '2023-10-05T06:30:00Z', event: 'Irrigation', zone: 'Zone A', duration: '15 min', volume: '75 L', icon: Sprout },

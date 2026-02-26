@@ -1,5 +1,5 @@
 import { BellRing, AlertOctagon, AlertTriangle, Info, Check, Clock, Trash2 } from 'lucide-react';
-import { Card, CardHeader, CardContent, Badge, Button } from '@hydro-orbit/ui';
+import { Card, CardContent, Badge, Button } from '@hydro-orbit/ui';
 
 const alerts = [
   { 

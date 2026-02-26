@@ -1,5 +1,5 @@
-import { MapPin, Droplet, Flask, CheckCircle, XCircle, AlertCircle, Plus, Leaf } from 'lucide-react';
-import { Card, CardHeader, CardContent, Badge, Button } from '@hydro-orbit/ui';
+import { MapPin, Droplet, TestTube, CheckCircle, XCircle, AlertCircle, Leaf } from 'lucide-react';
+import { Card, CardHeader, CardContent, Button } from '@hydro-orbit/ui';
 
 const zones = [
   { name: 'Zone A (Tomatoes)', moisture: '45%', pH: '6.5', status: 'good', lastWatered: '3h ago' },
@@ -110,7 +110,7 @@ export default function FarmDetailPage() {
                   <p className="text-sm font-medium">{zone.moisture}</p>
                 </div>
                 <div className="text-center">
-                  <Flask className="w-4 h-4 mx-auto text-green-500" />
+                  <TestTube className="w-4 h-4 mx-auto text-green-500" />
                   <p className="text-sm font-medium">{zone.pH}</p>
                 </div>
                 <Button size="sm" variant="outline">Water Now</Button>
