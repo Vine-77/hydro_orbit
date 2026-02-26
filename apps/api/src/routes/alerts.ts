@@ -54,4 +54,24 @@ router.post('/:alertId/acknowledge', async (req: AuthRequest, res, next) => {
   }
 });
 
+router.post('/acknowledge-all', async (req: AuthRequest, res, next) => {
+  try {
+    const farms = await prisma.farm.findMany({
+      where: { userId: req.user!.userId },
+      select: { id: true },
+    });
+
+    const farmIds = farms.map((f) => f.id);
+
+    await prisma.alert.updateMany({
+      where: { farmId: { in: farmIds }, acknowledged: false },
+      data: { acknowledged: true },
+    });
+
+    res.json({ success: true, message: 'All alerts acknowledged' });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
