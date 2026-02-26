@@ -1,0 +1,13 @@
+{
+  "name": "@hydro-orbit/shared-utils",
+  "version": "1.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src/",
+    "test": "echo \"No tests configured\""
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

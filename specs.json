@@ -1,0 +1,762 @@
+{
+  "projectName": "Hydro-Orbit",
+  "version": "1.0.0",
+  "description": "Complete development specification for Hydro-Orbit intelligent irrigation system.",
+  "objectives": [
+    "Build a solar-powered, AI-driven irrigation system for smallholder farmers.",
+    "Provide a mobile and web dashboard for monitoring and control.",
+    "Implement predictive irrigation using LSTM and fuzzy logic.",
+    "Ensure offline functionality and local autonomy on the ESP32.",
+    "Create a scalable, production-grade monorepo with shared code."
+  ],
+  "techStack": {
+    "frontend": {
+      "web": ["React 18", "TypeScript", "Vite", "Tailwind CSS", "Lucide React", "React Router v6", "Zustand", "React Query", "Socket.IO-client"],
+      "mobile": ["React Native 0.72", "Expo", "React Navigation 6", "Zustand", "React Query", "Socket.IO-client"]
+    },
+    "backend": {
+      "api": ["Node.js 20", "Express 4", "TypeScript", "Prisma ORM", "PostgreSQL", "Redis", "JWT", "Socket.IO", "MQTT (Mosquitto)", "Winston logging"],
+      "aiEngine": ["Python 3.11", "FastAPI", "TensorFlow", "scikit-learn", "pandas", "numpy", "joblib", "Docker"]
+    },
+    "firmware": {
+      "platform": "ESP32",
+      "framework": "PlatformIO with Arduino framework",
+      "libraries": ["WiFi", "PubSubClient (MQTT)", "ArduinoJson", "DHT sensor library", "AnalogpH", "ESP32Servo"]
+    },
+    "infrastructure": {
+      "containers": "Docker, Docker Compose",
+      "ciCd": "GitHub Actions",
+      "cloud": "AWS (EC2, RDS, S3) or DigitalOcean",
+      "monitoring": "Prometheus, Grafana"
+    },
+    "monorepo": {
+      "tool": "Turborepo",
+      "packageManager": "pnpm",
+      "structure": "apps/*, packages/*, firmware/, ai-engine/, infrastructure/, docs/"
+    }
+  },
+  "monorepoStructure": {
+    "root": {
+      "files": {
+        "package.json": "{\n  \"name\": \"hydro-orbit\",\n  \"private\": true,\n  \"scripts\": {\n    \"dev\": \"turbo run dev\",\n    \"build\": \"turbo run build\",\n    \"test\": \"turbo run test\",\n    \"lint\": \"turbo run lint\"\n  },\n  \"devDependencies\": {\n    \"turbo\": \"latest\"\n  },\n  \"packageManager\": \"pnpm@8.6.0\"\n}",
+        "pnpm-workspace.yaml": "packages:\n  - 'apps/*'\n  - 'packages/*'",
+        "turbo.json": "{\n  \"$schema\": \"https://turbo.build/schema.json\",\n  \"pipeline\": {\n    \"build\": {\n      \"dependsOn\": [\"^build\"],\n      \"outputs\": [\"dist/**\", \".next/**\"]\n    },\n    \"dev\": {\n      \"cache\": false\n    },\n    \"lint\": {},\n    \"test\": {}\n  }\n}",
+        ".gitignore": "node_modules\ndist\n.env\n.DS_Store\ncoverage\n*.log\nfirmware/.pio\nai-engine/__pycache__\nai-engine/venv\n",
+        ".env.example": "# Backend\nDATABASE_URL=postgresql://user:password@localhost:5432/hydro_orbit\nJWT_SECRET=your-secret-key\nREDIS_URL=redis://localhost:6379\nMQTT_BROKER=mqtt://localhost:1883\nAI_ENGINE_URL=http://ai-engine:8000\n\n# Frontend\nVITE_API_URL=http://localhost:3000/api\nVITE_WS_URL=ws://localhost:3000\n\n# Firmware\nWIFI_SSID=your-ssid\nWIFI_PASSWORD=your-password\nMQTT_SERVER=your-server-ip\n",
+        "README.md": "# Hydro-Orbit Monorepo\n\nIntelligent irrigation system for smallholder farmers.\n\n## Setup\n\n1. Install pnpm: `npm install -g pnpm`\n2. Install dependencies: `pnpm install`\n3. Start development: `pnpm dev`\n\nSee docs/ for architecture details."
+      },
+      "folders": {
+        "apps": {
+          "mobile": {},
+          "web": {},
+          "api": {}
+        },
+        "packages": {
+          "shared-types": {},
+          "shared-validators": {},
+          "shared-utils": {},
+          "ui": {},
+          "config": {}
+        },
+        "firmware": {},
+        "ai-engine": {},
+        "infrastructure": {},
+        "docs": {}
+      }
+    }
+  },
+  "frontend": {
+    "web": {
+      "description": "React web dashboard for farmers, accessible via browser on any device.",
+      "entryPoint": "apps/web/src/main.tsx",
+      "router": {
+        "library": "React Router v6",
+        "routes": [
+          { "path": "/", "component": "LoginPage", "private": false },
+          { "path": "/dashboard", "component": "DashboardPage", "private": true },
+          { "path": "/farm/:farmId", "component": "FarmDetailPage", "private": true },
+          { "path": "/sensors", "component": "SensorsPage", "private": true },
+          { "path": "/irrigation", "component": "IrrigationControlPage", "private": true },
+          { "path": "/history", "component": "HistoryPage", "private": true },
+          { "path": "/settings", "component": "SettingsPage", "private": true },
+          { "path": "/alerts", "component": "AlertsPage", "private": true }
+        ]
+      },
+      "layout": {
+        "component": "MainLayout",
+        "description": "Layout with responsive sidebar navigation, header with user menu, and main content area.",
+        "sidebar": {
+          "logo": "Hydro-Orbit",
+          "navItems": [
+            { "label": "Dashboard", "icon": "LayoutDashboard", "path": "/dashboard" },
+            { "label": "My Farm", "icon": "Farm", "path": "/farm/current" },
+            { "label": "Sensors", "icon": "Cpu", "path": "/sensors" },
+            { "label": "Irrigation", "icon": "Droplets", "path": "/irrigation" },
+            { "label": "History", "icon": "History", "path": "/history" },
+            { "label": "Alerts", "icon": "Bell", "path": "/alerts", "badge": "alertsCount" },
+            { "label": "Settings", "icon": "Settings", "path": "/settings" }
+          ]
+        },
+        "header": {
+          "userMenu": true,
+          "notifications": true,
+          "syncStatus": "online/offline"
+        }
+      },
+      "pages": {
+        "LoginPage": {
+          "content": "Full-screen centered card with login form. Background image of a farm. Form fields: Phone number (or email), Password. 'Login' button (Lucide: LogIn). Link to 'Request access' for new farmers. On success, redirect to /dashboard."
+        },
+        "DashboardPage": {
+          "content": [
+            {
+              "type": "welcome",
+              "text": "Good morning, [Farmer Name]!",
+              "icon": "Sun"
+            },
+            {
+              "type": "summaryCards",
+              "cards": [
+                { "title": "Soil Moisture", "value": "32%", "icon": "Droplet", "color": "blue", "trend": "down", "status": "normal" },
+                { "title": "Water Level", "value": "1,200 L", "icon": "Tank", "color": "cyan", "status": "good" },
+                { "title": "pH Level", "value": "6.8", "icon": "Flask", "color": "green", "status": "optimal" },
+                { "title": "Last Irrigation", "value": "2 hours ago", "icon": "Clock", "color": "gray" }
+              ]
+            },
+            {
+              "type": "chart",
+              "title": "Soil Moisture Trend (Last 24h)",
+              "chartType": "line",
+              "dataUrl": "/api/farms/current/moisture-history",
+              "icon": "TrendingUp"
+            },
+            {
+              "type": "quickActions",
+              "title": "Quick Actions",
+              "actions": [
+                { "label": "Manual Water", "icon": "Hand", "action": "openManualDialog" },
+                { "label": "View Farm", "icon": "Map", "link": "/farm/current" },
+                { "label": "Check Sensors", "icon": "Activity", "link": "/sensors" }
+              ]
+            },
+            {
+              "type": "recentAlerts",
+              "title": "Recent Alerts",
+              "list": [
+                { "message": "Low water level in Tank B", "time": "10 min ago", "severity": "warning", "icon": "AlertTriangle" },
+                { "message": "pH imbalance detected in Zone 3", "time": "1 hour ago", "severity": "critical", "icon": "AlertOctagon" }
+              ],
+              "viewAllLink": "/alerts"
+            }
+          ]
+        },
+        "FarmDetailPage": {
+          "params": "farmId",
+          "content": [
+            {
+              "type": "header",
+              "title": "My Farm",
+              "subtitle": "Kigali, Rwanda",
+              "icon": "MapPin"
+            },
+            {
+              "type": "farmMap",
+              "description": "Simple SVG representation of farm zones with moisture color overlay.",
+              "legend": { "wet": "blue", "dry": "orange", "optimal": "green" }
+            },
+            {
+              "type": "zoneList",
+              "zones": [
+                { "name": "Zone A (Tomatoes)", "moisture": "45%", "pH": "6.5", "status": "good", "lastWatered": "3h ago" },
+                { "name": "Zone B (Maize)", "moisture": "20%", "pH": "7.2", "status": "dry", "lastWatered": "12h ago" },
+                { "name": "Zone C (Beans)", "moisture": "60%", "pH": "6.8", "status": "wet", "lastWatered": "1h ago" }
+              ],
+              "actionsPerZone": ["waterNow", "viewDetails"]
+            },
+            {
+              "type": "quickStats",
+              "totalArea": "2.5 hectares",
+              "activeSensors": 12,
+              "waterUsageToday": "350 L"
+            }
+          ]
+        },
+        "SensorsPage": {
+          "content": [
+            {
+              "type": "header",
+              "title": "Sensor Network",
+              "icon": "Network"
+            },
+            {
+              "type": "sensorGrid",
+              "sensors": [
+                { "id": "s1", "type": "moisture", "location": "Zone A", "value": "32%", "battery": "98%", "status": "online", "icon": "Waves" },
+                { "id": "s2", "type": "pH", "location": "Zone A", "value": "6.8", "battery": "95%", "status": "online", "icon": "Flask" },
+                { "id": "s3", "type": "waterLevel", "location": "Main Tank", "value": "1200L", "battery": "100%", "status": "online", "icon": "Gauge" },
+                { "id": "s4", "type": "moisture", "location": "Zone B", "value": "20%", "battery": "45%", "status": "lowBattery", "icon": "Waves" },
+                { "id": "s5", "type": "pH", "location": "Zone B", "value": "7.2", "battery": "80%", "status": "online", "icon": "Flask" }
+              ]
+            },
+            {
+              "type": "sensorDetail",
+              "expanded": false
+            }
+          ]
+        },
+        "IrrigationControlPage": {
+          "content": [
+            {
+              "type": "header",
+              "title": "Irrigation Control",
+              "icon": "Sprout"
+            },
+            {
+              "type": "modeToggle",
+              "modes": [
+                { "label": "Auto (AI)", "value": "auto", "icon": "Bot", "description": "System decides based on soil and weather" },
+                { "label": "Manual", "value": "manual", "icon": "User", "description": "You control when to water" },
+                { "label": "Schedule", "value": "schedule", "icon": "Calendar", "description": "Set specific times" }
+              ],
+              "default": "auto"
+            },
+            {
+              "type": "zoneControls",
+              "condition": "mode === 'manual'",
+              "zones": [
+                { "name": "Zone A", "moisture": "32%", "action": { "type": "slider", "label": "Water for (min)", "max": 30, "unit": "min" } },
+                { "name": "Zone B", "moisture": "20%", "action": { "type": "slider", "label": "Water for (min)", "max": 30 } }
+              ],
+              "globalAction": "Water All Zones"
+            },
+            {
+              "type": "scheduleBuilder",
+              "condition": "mode === 'schedule'",
+              "schedules": [
+                { "zone": "Zone A", "days": ["Mon", "Wed", "Fri"], "time": "06:00", "duration": 15, "enabled": true },
+                { "zone": "Zone B", "days": ["Tue", "Thu", "Sat"], "time": "18:00", "duration": 20, "enabled": true }
+              ],
+              "addSchedule": true
+            },
+            {
+              "type": "aiSettings",
+              "condition": "mode === 'auto'",
+              "settings": {
+                "dryThreshold": "30%",
+                "wetThreshold": "70%",
+                "useWeatherForecast": true,
+                "learnFromHistory": true
+              }
+            },
+            {
+              "type": "currentStatus",
+              "title": "Current Irrigation",
+              "status": "Idle",
+              "progress": null
+            }
+          ]
+        },
+        "HistoryPage": {
+          "content": [
+            {
+              "type": "header",
+              "title": "Irrigation History",
+              "icon": "CalendarClock"
+            },
+            {
+              "type": "filters",
+              "dateRange": true,
+              "zone": "dropdown",
+              "eventType": ["irrigation", "alert", "sensor"]
+            },
+            {
+              "type": "timeline",
+              "items": [
+                { "timestamp": "2023-10-05T06:30:00Z", "event": "Irrigation", "zone": "Zone A", "duration": "15 min", "volume": "75 L", "icon": "Sprout" },
+                { "timestamp": "2023-10-05T04:15:00Z", "event": "Alert", "zone": "Zone B", "message": "Low moisture (18%)", "severity": "warning", "icon": "AlertTriangle" },
+                { "timestamp": "2023-10-04T23:00:00Z", "event": "Sensor Reading", "zone": "Zone A", "moisture": "32%", "pH": "6.8", "icon": "Activity" }
+              ]
+            },
+            {
+              "type": "stats",
+              "totalWaterUsed": "2,500 L",
+              "avgMoisture": "45%",
+              "irrigationEvents": 12
+            }
+          ]
+        },
+        "AlertsPage": {
+          "content": [
+            {
+              "type": "header",
+              "title": "Alerts",
+              "icon": "BellRing"
+            },
+            {
+              "type": "alertList",
+              "alerts": [
+                { "id": "a1", "severity": "critical", "message": "pH level critically low in Zone B (5.2)", "timestamp": "2023-10-05T08:30:00Z", "acknowledged": false, "icon": "AlertOctagon" },
+                { "id": "a2", "severity": "warning", "message": "Water tank below 20%", "timestamp": "2023-10-05T07:45:00Z", "acknowledged": true, "icon": "AlertTriangle" },
+                { "id": "a3", "severity": "info", "message": "Sensor S4 battery low (15%)", "timestamp": "2023-10-05T06:20:00Z", "acknowledged": false, "icon": "Info" }
+              ],
+              "actions": ["acknowledge", "snooze", "viewDetails"]
+            }
+          ]
+        },
+        "SettingsPage": {
+          "content": [
+            {
+              "type": "header",
+              "title": "Settings",
+              "icon": "Settings"
+            },
+            {
+              "type": "tabs",
+              "tabs": [
+                {
+                  "label": "Profile",
+                  "content": {
+                    "fields": [
+                      { "label": "Name", "type": "text", "value": "John Doe" },
+                      { "label": "Phone", "type": "tel", "value": "+250781234567" },
+                      { "label": "Farm Name", "type": "text", "value": "Green Valley" },
+                      { "label": "Location", "type": "text", "value": "Kigali" }
+                    ],
+                    "saveButton": true
+                  }
+                },
+                {
+                  "label": "Notifications",
+                  "content": {
+                    "options": [
+                      { "label": "SMS alerts", "enabled": true },
+                      { "label": "Push notifications", "enabled": true },
+                      { "label": "Email summary", "enabled": false },
+                      { "label": "Critical alerts only", "enabled": false }
+                    ]
+                  }
+                },
+                {
+                  "label": "Devices",
+                  "content": {
+                    "devices": [
+                      { "name": "Main Controller", "id": "esp32-001", "status": "online", "firmware": "1.2.0", "actions": ["reboot", "update"] },
+                      { "name": "Sensor S1", "id": "s1", "status": "online", "battery": "98%" }
+                    ]
+                  }
+                },
+                {
+                  "label": "Billing",
+                  "content": {
+                    "plan": "Pay-As-You-Harvest",
+                    "balance": "12,500 RWF",
+                    "paymentMethods": ["Mobile Money"],
+                    "transactions": []
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "stateManagement": {
+        "store": "Zustand",
+        "slices": [
+          "authSlice (user, token, isAuthenticated)",
+          "farmsSlice (currentFarm, farmsList)",
+          "sensorsSlice (sensors, readings)",
+          "irrigationSlice (mode, schedules, currentStatus)",
+          "alertsSlice (alerts, unreadCount)",
+          "settingsSlice (preferences)"
+        ],
+        "persist": ["auth", "settings"]
+      },
+      "apiIntegration": {
+        "library": "React Query",
+        "baseUrl": "import.meta.env.VITE_API_URL",
+        "queries": [
+          "useFarm()",
+          "useSensors()",
+          "useMoistureHistory()",
+          "useAlerts()",
+          "useIrrigationSchedules()"
+        ],
+        "mutations": [
+          "updateIrrigationMode()",
+          "startManualIrrigation()",
+          "acknowledgeAlert()",
+          "updateSettings()"
+        ],
+        "realtime": {
+          "websocket": "Socket.IO",
+          "events": ["sensor:update", "alert:new", "irrigation:status"]
+        }
+      },
+      "uiComponents": {
+        "library": "Custom components with Tailwind CSS",
+        "icons": "lucide-react (imported dynamically)",
+        "common": [
+          "Button", "Card", "Chart", "SensorGauge", "WaterTank", "FarmMap", "AlertBanner", "Spinner", "Modal"
+        ]
+      }
+    },
+    "mobile": {
+      "description": "React Native Expo app with similar features to web, optimized for offline use.",
+      "navigation": {
+        "library": "@react-navigation/native",
+        "stack": {
+          "AuthStack": ["Login", "Register"],
+          "MainTab": {
+            "tabs": [
+              { "name": "Dashboard", "icon": "home", "component": "DashboardScreen" },
+              { "name": "Farm", "icon": "map", "component": "FarmScreen" },
+              { "name": "Irrigation", "icon": "droplet", "component": "IrrigationScreen" },
+              { "name": "Alerts", "icon": "bell", "component": "AlertsScreen" },
+              { "name": "Settings", "icon": "settings", "component": "SettingsScreen" }
+            ]
+          }
+        }
+      },
+      "screens": {
+        "DashboardScreen": { ... } // similar to web dashboard but adapted for mobile
+      }
+    }
+  },
+  "backend": {
+    "api": {
+      "entryPoint": "apps/api/src/index.ts",
+      "framework": "Express with TypeScript",
+      "structure": {
+        "src": {
+          "index.ts": "setup express, middleware, routes",
+          "config": "database, redis, mqtt, env",
+          "controllers": "farm, sensor, irrigation, auth, alert, settings",
+          "services": "business logic, AI integration",
+          "models": "Prisma schema",
+          "middleware": "auth, validation, errorHandler",
+          "routes": "v1 routes",
+          "utils": "logger, helpers",
+          "types": "global types"
+        }
+      },
+      "database": {
+        "orm": "Prisma",
+        "schema": {
+          "User": {
+            "id": "String @id @default(uuid())",
+            "phone": "String @unique",
+            "passwordHash": "String",
+            "name": "String",
+            "role": "Enum [FARMER, ADMIN]",
+            "farms": "Farm[]",
+            "createdAt": "DateTime",
+            "updatedAt": "DateTime"
+          },
+          "Farm": {
+            "id": "String @id @default(uuid())",
+            "name": "String",
+            "location": "String",
+            "area": "Float",
+            "userId": "String",
+            "zones": "Zone[]",
+            "sensors": "Sensor[]",
+            "createdAt": "DateTime"
+          },
+          "Zone": {
+            "id": "String @id @default(uuid())",
+            "name": "String",
+            "farmId": "String",
+            "cropType": "String",
+            "moistureThreshold": "Float",
+            "sensors": "Sensor[]"
+          },
+          "Sensor": {
+            "id": "String @id",
+            "type": "Enum [MOISTURE, PH, WATER_LEVEL]",
+            "zoneId": "String?",
+            "farmId": "String",
+            "lastReading": "Float?",
+            "battery": "Float?",
+            "status": "Enum [ONLINE, OFFLINE, LOW_BATTERY]",
+            "readings": "SensorReading[]"
+          },
+          "SensorReading": {
+            "id": "String @id @default(uuid())",
+            "sensorId": "String",
+            "value": "Float",
+            "timestamp": "DateTime"
+          },
+          "IrrigationEvent": {
+            "id": "String @id @default(uuid())",
+            "zoneId": "String",
+            "startTime": "DateTime",
+            "endTime": "DateTime?",
+            "duration": "Int?",
+            "volume": "Float?",
+            "trigger": "Enum [AUTO, MANUAL, SCHEDULED]",
+            "status": "Enum [ACTIVE, COMPLETED, FAILED]"
+          },
+          "Alert": {
+            "id": "String @id @default(uuid())",
+            "farmId": "String",
+            "zoneId": "String?",
+            "sensorId": "String?",
+            "severity": "Enum [INFO, WARNING, CRITICAL]",
+            "message": "String",
+            "acknowledged": "Boolean @default(false)",
+            "createdAt": "DateTime"
+          },
+          "IrrigationSchedule": {
+            "id": "String @id @default(uuid())",
+            "zoneId": "String",
+            "days": "String[]", // e.g., ["MON","WED","FRI"]
+            "time": "String", // HH:MM
+            "duration": "Int", // minutes
+            "enabled": "Boolean"
+          }
+        }
+      },
+      "apiEndpoints": {
+        "auth": {
+          "POST /api/auth/login": "login with phone/password, return JWT",
+          "POST /api/auth/register": "register new farmer (admin only)",
+          "POST /api/auth/refresh": "refresh token"
+        },
+        "farms": {
+          "GET /api/farms": "list user's farms",
+          "GET /api/farms/:farmId": "get farm details with zones",
+          "PUT /api/farms/:farmId": "update farm",
+          "DELETE /api/farms/:farmId": "delete farm"
+        },
+        "sensors": {
+          "GET /api/sensors": "list all sensors for user's farms",
+          "GET /api/sensors/:sensorId": "get sensor details and latest reading",
+          "GET /api/sensors/:sensorId/history": "get historical readings (query: from, to)",
+          "POST /api/sensors/reading": "ingest sensor data (from firmware)"
+        },
+        "irrigation": {
+          "GET /api/irrigation/status": "get current irrigation status",
+          "POST /api/irrigation/manual": "start manual irrigation",
+          "POST /api/irrigation/stop": "stop current irrigation",
+          "GET /api/irrigation/schedules": "get schedules",
+          "POST /api/irrigation/schedules": "create/update schedule",
+          "DELETE /api/irrigation/schedules/:id": "delete schedule",
+          "POST /api/irrigation/mode": "set mode (auto/manual/schedule)"
+        },
+        "alerts": {
+          "GET /api/alerts": "list alerts (query: unread, severity)",
+          "POST /api/alerts/:alertId/acknowledge": "acknowledge alert"
+        },
+        "history": {
+          "GET /api/history/irrigation": "list irrigation events",
+          "GET /api/history/sensor": "list sensor readings aggregated"
+        },
+        "ai": {
+          "POST /api/ai/predict": "get irrigation prediction for a zone (internal)"
+        }
+      },
+      "middleware": {
+        "auth": "JWT verification, attach user to request",
+        "validation": "zod schemas for request bodies",
+        "errorHandler": "central error logging and formatting",
+        "rateLimit": "express-rate-limit"
+      },
+      "realtime": {
+        "mqtt": {
+          "broker": "Mosquitto",
+          "topics": {
+            "sensor/data": "publish from firmware, subscribe backend",
+            "irrigation/command": "backend publishes commands to firmware",
+            "irrigation/status": "firmware publishes status updates"
+          }
+        },
+        "socket.io": {
+          "namespace": "/",
+          "events": {
+            "sensor:update": "emit to farmer rooms when new sensor reading arrives",
+            "alert:new": "emit new alert",
+            "irrigation:status": "emit status change"
+          },
+          "rooms": "per farm"
+        }
+      },
+      "services": {
+        "aiService": {
+          "method": "HTTP call to AI engine FastAPI",
+          "endpoints": {
+            "predict": "POST /predict",
+            "train": "POST /train (admin only)"
+          }
+        },
+        "weatherService": {
+          "integration": "OpenWeatherMap API",
+          "cache": "Redis with 1 hour TTL"
+        }
+      },
+      "security": {
+        "jwt": "HS256, expires in 7d",
+        "passwordHashing": "bcrypt",
+        "helmet": true,
+        "cors": "configured for frontend domains"
+      },
+      "logging": "Winston with transports: console, file, (optional) cloud"
+    }
+  },
+  "firmware": {
+    "platform": "ESP32",
+    "framework": "PlatformIO",
+    "structure": {
+      "firmware/": {
+        "platformio.ini": "[env:esp32dev]\nplatform = espressif32\nboard = esp32dev\nframework = arduino\nmonitor_speed = 115200\nlib_deps =\n\tknolleary/PubSubClient@^2.8\n\tbblanchon/ArduinoJson@^6.21\n\tadafruit/DHT sensor library@^1.4.4\n\t" ],
+        "src/main.cpp": "// Main firmware code (see below for description)",
+        "include/": {
+          "config.h": "WiFi credentials, MQTT server, pin definitions",
+          "sensors.h": "sensor reading functions",
+          "mqtt.h": "MQTT client wrapper",
+          "irrigation.h": "valve control logic"
+        }
+      }
+    },
+    "main.cpp": {
+      "description": "Arduino sketch for ESP32.",
+      "code": [
+        "// Includes",
+        "#include <WiFi.h>",
+        "#include <PubSubClient.h>",
+        "#include <ArduinoJson.h>",
+        "#include \"config.h\"",
+        "#include \"sensors.h\"",
+        "#include \"irrigation.h\"",
+        "",
+        "WiFiClient espClient;",
+        "PubSubClient mqtt(espClient);",
+        "",
+        "void setup() {",
+        "  Serial.begin(115200);",
+        "  setupWiFi();",
+        "  mqtt.setServer(MQTT_SERVER, 1883);",
+        "  mqtt.setCallback(callback);",
+        "  setupSensors();",
+        "  setupValves();",
+        "}",
+        "",
+        "void loop() {",
+        "  if (!mqtt.connected()) reconnectMQTT();",
+        "  mqtt.loop();",
+        "  readSensorsAndPublish();",
+        "  checkLocalControl(); // optional fuzzy logic",
+        "  delay(5000);",
+        "}",
+        "",
+        "void callback(char* topic, byte* payload, unsigned int length) {",
+        "  // Handle incoming commands (irrigation on/off, set mode)",
+        "}",
+        "",
+        "void readSensorsAndPublish() {",
+        "  float moisture = readMoisture();",
+        "  float ph = readPH();",
+        "  float waterLevel = readWaterLevel();",
+        "  float battery = readBattery();",
+        "  StaticJsonDocument<256> doc;",
+        "  doc[\"deviceId\"] = DEVICE_ID;",
+        "  doc[\"moisture\"] = moisture;",
+        "  doc[\"ph\"] = ph;",
+        "  doc[\"waterLevel\"] = waterLevel;",
+        "  doc[\"battery\"] = battery;",
+        "  char buffer[256];",
+        "  serializeJson(doc, buffer);",
+        "  mqtt.publish(\"sensor/data\", buffer);",
+        "}"
+      ]
+    },
+    "localControl": {
+      "description": "Fuzzy logic for autonomous irrigation when offline.",
+      "implementation": "Simple rule-based: if moisture < threshold and waterLevel > low, activate valve for zone."
+    }
+  },
+  "aiEngine": {
+    "description": "Python FastAPI microservice for AI predictions and model training.",
+    "structure": {
+      "ai-engine/": {
+        "src/": {
+          "main.py": "FastAPI app",
+          "models/": {
+            "lstm_model.py": "LSTM for time-series prediction",
+            "fuzzy_logic.py": "Fuzzy inference system"
+          },
+          "data_pipeline/": {
+            "preprocess.py": "data cleaning and feature engineering",
+            "train.py": "training script"
+          },
+          "api/": {
+            "routes.py": "API endpoints",
+            "schemas.py": "Pydantic models"
+          }
+        },
+        "notebooks/": "Jupyter notebooks for exploration",
+        "requirements.txt": "fastapi, tensorflow, scikit-learn, pandas, numpy, joblib, uvicorn",
+        "Dockerfile": "FROM python:3.11-slim ...",
+        "models/": "saved model files (.h5, .joblib)"
+      }
+    },
+    "apiEndpoints": {
+      "POST /predict": {
+        "request": { "zoneId": "string", "history": [{"timestamp": "ISO", "moisture": "float"}], "weatherForecast": {} },
+        "response": { "predictedMoisture": [float], "recommendedIrrigation": "bool", "duration": "int" }
+      },
+      "POST /train": {
+        "request": { "farmId": "string" },
+        "response": { "status": "training started" }
+      }
+    },
+    "models": {
+      "lstm": {
+        "description": "Predicts soil moisture for next 24 hours based on past 72 hours of sensor data and weather.",
+        "input_shape": "(72, features)",
+        "features": ["moisture", "temperature", "humidity", "rainfall"],
+        "output": "24 moisture values"
+      },
+      "fuzzyLogic": {
+        "description": "Sugeno-type fuzzy system for real-time irrigation decision.",
+        "inputs": ["moisture", "ph", "waterLevel", "timeSinceLastRain"],
+        "output": "irrigation_duration (minutes)"
+      }
+    },
+    "trainingPipeline": {
+      "data_source": "PostgreSQL database (SensorReading table)",
+      "frequency": "weekly retraining",
+      "output": "save model to disk and reload in API"
+    }
+  },
+  "deployment": {
+    "dockerCompose": {
+      "services": {
+        "postgres": "image: postgres:15, volumes, env",
+        "redis": "image: redis:7",
+        "mosquitto": "image: eclipse-mosquitto, ports",
+        "api": "build: ./apps/api, ports, depends_on",
+        "ai-engine": "build: ./ai-engine, ports",
+        "web": "build: ./apps/web, ports (nginx)"
+      }
+    },
+    "githubActions": {
+      "workflows": {
+        "ci.yml": "lint, test, build on PR",
+        "cd.yml": "deploy to server on main branch"
+      }
+    },
+    "environmentVariables": {
+      "required": ["DATABASE_URL", "JWT_SECRET", "REDIS_URL", "MQTT_BROKER", "AI_ENGINE_URL", "VITE_API_URL"]
+    },
+    "monitoring": {
+      "logs": "centralized with Winston and possibly Papertrail",
+      "metrics": "Prometheus + Grafana for API and system metrics"
+    }
+  },
+  "developmentWorkflow": {
+    "setup": "pnpm install, docker-compose up -d postgres redis mosquitto, pnpm dev",
+    "testing": "unit tests with Jest (backend/frontend), pytest (ai-engine), PlatformIO test (firmware)",
+    "codeQuality": "ESLint, Prettier, Black (Python), Clang-format (C++)",
+    "documentation": "API docs with Swagger (OpenAPI), READMEs in each package"
+  }
+}
