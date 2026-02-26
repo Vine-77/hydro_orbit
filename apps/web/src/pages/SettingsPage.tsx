@@ -7,7 +7,8 @@ const tabs = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'devices', label: 'Devices', icon: Smartphone },
-  { id: 'billing', label: 'Billing', icon: CreditCard }
+  { id: 'billing', label: 'Billing', icon: CreditCard },
+  { id: 'timezone', label: 'Timezone', icon: Settings }
 ];
 
 const devices = [
@@ -145,6 +146,31 @@ export default function SettingsPage() {
                 <span>Mobile Money</span>
               </div>
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'timezone' && (
+        <Card>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-600">Current Timezone</p>
+              <p className="text-xl font-bold text-blue-700">Africa/Kigali (GMT+2)</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 mb-2">Select your timezone for accurate scheduling</p>
+              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <option value="Africa/Kigali">Africa/Kigali (GMT+2)</option>
+                <option value="Africa/Nairobi">Africa/Nairobi (GMT+3)</option>
+                <option value="Africa/Lagos">Africa/Lagos (GMT+1)</option>
+                <option value="Africa/Cairo">Africa/Cairo (GMT+2)</option>
+                <option value="UTC">UTC (GMT+0)</option>
+              </select>
+            </div>
+            <Button>
+              <Save className="w-4 h-4 mr-2" />
+              Update Timezone
+            </Button>
           </CardContent>
         </Card>
       )}
