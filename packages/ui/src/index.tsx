@@ -235,3 +235,73 @@ export const AlertBanner: React.FC<{
     </div>
   );
 };
+
+interface ProgressBarProps {
+  value: number;
+  max?: number;
+  variant?: 'default' | 'success' | 'warning' | 'danger';
+  showLabel?: boolean;
+  className?: string;
+}
+
+export const ProgressBar: React.FC<ProgressBarProps> = ({
+  value,
+  max = 100,
+  variant = 'default',
+  showLabel = false,
+  className = ''
+}) => {
+  const percentage = Math.min(100, Math.max(0, (value / max) * 100));
+  
+  const variants = {
+    default: 'bg-emerald-600',
+    success: 'bg-green-600',
+    warning: 'bg-yellow-500',
+    danger: 'bg-red-600',
+  };
+
+  return (
+    <div className={`w-full ${className}`}>
+      {showLabel && (
+        <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <span>{value}</span>
+          <span>{max}</span>
+        </div>
+      )}
+      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${variants[variant]}`}
+          style={{ width: `${percentage}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+
+interface SkeletonProps {
+  className?: string;
+}
+
+export const Skeleton: React.FC<SkeletonProps> = ({ className = '' }) => {
+  return (
+    <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  );
+};
+
+interface EmptyStateProps {
+  icon?: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}
+
+export const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, action }) => {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      {icon && <div className="mb-4 text-gray-400">{icon}</div>}
+      <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+      {description && <p className="mt-2 text-sm text-gray-500 max-w-sm">{description}</p>}
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+};
