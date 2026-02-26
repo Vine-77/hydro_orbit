@@ -59,7 +59,12 @@ app.use('/api/alerts', alertRoutes);
 app.use('/api/history', historyRoutes);
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    timezone: DEFAULT_TIMEZONE,
+  });
 });
 
 app.use(errorHandler);
