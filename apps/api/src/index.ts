@@ -18,6 +18,8 @@ import historyRoutes from './routes/history.js';
 
 dotenv.config();
 
+export const DEFAULT_TIMEZONE = process.env.DEFAULT_TIMEZONE || 'Africa/Kigali';
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -37,6 +39,11 @@ redis.connect().catch(console.error);
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+
+app.use((req, res, next) => {
+  req.timezone = req.headers['x-timezone'] as string || DEFAULT_TIMEZONE;
+  next();
+});
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
